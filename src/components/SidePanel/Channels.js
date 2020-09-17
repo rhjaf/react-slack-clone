@@ -8,26 +8,47 @@ import {setCurrentChannel} from '../../actions';
 class Channels extends Component {
     
     state = {
+      activeChannel: "",
         user: this.props.currentUser,
         channels: [],
         channelName: "",
         channelDetails: "",
         channelsRef: firebase.database().ref("channels"),
-        modal: false
+        modal: false,
+        firstLoad: true
+
       };
 
       componentDidMount(){
         this.addListeners();
       }
 
+      componentWillUnmount() {
+        // !REVIEW Remember always to remove listeners.
+        this.removeListeners();
+      }
+
       addListeners = () => {
         let loadedChannels = [];
         this.state.channelsRef.on("child_added", snap => {
           loadedChannels.push(snap.val());
-          this.setState({ channels: loadedChannels });
+          this.setState({ channels: loadedChannels},()=>this.setFirstChannel()); 
+          // !REVIEW second method is a callback
         });
       };
+      
+      removeListeners = () => {
+        this.state.channelsRef.off();
+      };
 
+      setFirstChannel = () => {
+        const firstChannel = this.state.channels[0];
+        if (this.state.firstLoad && this.state.channels.length > 0) {
+          this.props.setCurrentChannel(firstChannel);
+          this.setActiveChannel(firstChannel);
+        }
+        this.setState({ firstLoad: false });
+      };
 
       addChannel = () => {
 
@@ -74,15 +95,20 @@ class Channels extends Component {
             onClick={() => this.changeChannel(channel)}
             name={channel.name}
             style={{ opacity: 0.7 }}
+            active={channel.id === this.state.activeChannel}
           >
             # {channel.name}
           </Menu.Item>
         ));
 
         changeChannel = channel => {
+          this.setActiveChannel(channel);
           this.props.setCurrentChannel(channel);
         };
 
+      setActiveChannel = channel => {
+        this.setState({ activeChannel: channel.id });
+      };
 
       isFormValid = ({ channelName, channelDetails }) =>
         channelName && channelDetails;
