@@ -12,7 +12,11 @@ class Messages extends React.Component {
         messages: [],
         messagesLoading: true,
         channel: this.props.currentChannel,
-        user: this.props.currentUser
+        user: this.props.currentUser,
+        numUniqueUsers: "",
+        searchTerm: "",
+        searchLoading: false,
+        searchResults: []
     };
 
 
@@ -38,6 +42,33 @@ class Messages extends React.Component {
             });
         });
         this.countUniqueUsers(loadedMessages);
+    };
+
+    handleSearchChange = event => {
+        console.log("Searching");
+        this.setState(
+            {
+                searchTerm: event.target.value,
+                searchLoading: true
+            },
+            () => this.handleSearchMessages()
+        );
+    };
+
+    handleSearchMessages = () => {
+        const channelMessages = [...this.state.messages];
+        const regex = new RegExp(this.state.searchTerm, "gi"); // globally and in-case sensitive
+        const searchResults = channelMessages.reduce((acc, message) => {
+            if (
+                (message.content && message.content.match(regex)) ||
+                message.user.name.match(regex)
+            ) {
+                acc.push(message);
+            }
+            return acc;
+        }, []);
+        this.setState({ searchResults });
+        setTimeout(() => this.setState({ searchLoading: false }), 1000);
     };
 
     countUniqueUsers = messages => {
@@ -67,13 +98,15 @@ class Messages extends React.Component {
 
     displayChannelName = channel => (channel ? `#${channel.name}` : "");
   render() {
-      const { messagesRef, channel, user,messages,numUniqueUsers } = this.state;
+      const { messagesRef, channel, user,messages,numUniqueUsers,searchLoading,searchTerm,searchResults } = this.state;
     return (
       <React.Fragment>
-        <MessagesHeader channelName={this.displayChannelName(channel)} numUniqueUsers={numUniqueUsers} />
+        <MessagesHeader handleSearchChange={this.handleSearchChange} searchLoading={searchLoading} channelName={this.displayChannelName(channel)} numUniqueUsers={numUniqueUsers} />
 
         <Segment>
-          <Comment.Group className="messages">{this.displayMessages(messages)}</Comment.Group>
+            {searchTerm
+                ? this.displayMessages(searchResults)
+                : this.displayMessages(messages)}
         </Segment>
 
         <MessageForm messagesRef={messagesRef} currentChannel={channel} currentUser={user} />
