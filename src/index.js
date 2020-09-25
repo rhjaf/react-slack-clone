@@ -32,7 +32,7 @@ class Root extends Component{
 
     firebase.auth().onAuthStateChanged(user=>{
       if(user){
-            // detects wheter is a logged-in user in our app
+            // detects whether is a logged-in user in our app
         this.props.setUser(user);
         this.props.history.push('/');
       } else {

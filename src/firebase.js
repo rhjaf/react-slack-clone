@@ -17,6 +17,6 @@ const config = {
   // Initialize Firebase
   
 
-  firebase.initializeApp(config);
+firebase.initializeApp(config);
 
-export default firebase; // make it available for other parts of  ourapp
+export default firebase; // make it available for other parts of  our app
