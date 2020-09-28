@@ -8,6 +8,8 @@ import {setUserPosts} from '../../actions/index' ;
 import firebase from "../../firebase";
 import {connect} from 'react-redux'
 import Typing from "./Typing";
+import Skeleton from "./Skeleton";
+
 
 class Messages extends React.Component {
     state = {
@@ -232,9 +234,17 @@ class Messages extends React.Component {
                 <span className="user__typing">{user.name} is typing</span> <Typing />
             </div>
         ));
+    displayMessageSkeleton = loading =>
+        loading ? (
+            <React.Fragment>
+                {[...Array(10)].map((_, i) => ( // fill completely messages section
+                    <Skeleton key={i} />
+                ))}
+            </React.Fragment>
+        ) : null;
 
   render() {
-      const { messagesRef, channel, user,messages,numUniqueUsers,searchLoading,searchTerm,searchResults,privateChannel, isChannelStarred,typingUsers } = this.state;
+      const { messagesRef, channel, user,messages,numUniqueUsers,searchLoading,searchTerm,searchResults,privateChannel, isChannelStarred,typingUsers,messagesLoading } = this.state;
     return (
       <React.Fragment>
         <MessagesHeader handleSearchChange={this.handleSearchChange} searchLoading={searchLoading}
@@ -244,6 +254,7 @@ class Messages extends React.Component {
 
         <Segment>
             <Comment.Group className="messages">
+                {this.displayMessageSkeleton(messagesLoading)}
                 {searchTerm ? this.displayMessages(searchResults) : this.displayMessages(messages)} {this.displayTypingUsers(typingUsers)}
                 <div ref={node => (this.messagesEnd = node)} />
             </Comment.Group>
